@@ -8,6 +8,7 @@ import DatePicker from "../../ui/DatePicker.vue";
 import { API_ENDPOINT } from "../../../constants/endpoint";
 import { parseApiError } from "../../../utils/ErrorHandler";
 import { ToastSuccess, ToastError } from "../../../utils/ToastUtils";
+import { useFetch } from "../../../composable/useFetch";
 
 type FormDataType = {
   first_name: string;
@@ -20,6 +21,13 @@ type FormDataType = {
   photo: File | null;
   password: string;
   confirm_password: string;
+};
+
+type RegisterResponse = {
+  status: number;
+  iserror: boolean;
+  message: string;
+  data?: any;
 };
 
 const formData = ref<FormDataType>({
@@ -37,7 +45,8 @@ const formData = ref<FormDataType>({
 
 const selectGender = ref<string>("");
 const birthDate = ref<string>("");
-const loading = ref<boolean>(false);
+
+const { loading, request } = useFetch<RegisterResponse>();
 
 const errors = ref<Record<string, string>>({});
 
@@ -90,7 +99,6 @@ async function handleSubmit(e: Event) {
   e.preventDefault();
   if (!validateForm()) return;
 
-  loading.value = true;
   try {
     const body = new FormData();
     body.append("first_name", formData.value.first_name);
@@ -106,22 +114,33 @@ async function handleSubmit(e: Event) {
       body.append("photo", formData.value.photo);
     }
 
-    const res = await fetch(`${API_ENDPOINT}/auth/register`, {
+    const result = await request(`${API_ENDPOINT}/auth/register`, {
       method: "POST",
       body,
     });
 
-    const data = await res.json();
-    if (!res.ok) {
-      throw data;
-    }
+    if (result) {
+      ToastSuccess("Register Berhasil, Silahkan Login");
 
-    ToastSuccess("Register Berhasil, Silahkan Login");
+      formData.value = {
+        first_name: "",
+        last_name: "",
+        gender: "male",
+        date_of_birth: "",
+        email: "",
+        phone: "",
+        address: "",
+        photo: null,
+        password: "",
+        confirm_password: "",
+      };
+      selectGender.value = "";
+      birthDate.value = "";
+      errors.value = {};
+    }
   } catch (err: any) {
     const message = parseApiError(err);
     ToastError(message);
-  } finally {
-    loading.value = false;
   }
 }
 
