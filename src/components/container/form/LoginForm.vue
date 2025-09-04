@@ -7,34 +7,16 @@ import Button from "../../ui/Button.vue";
 import { API_ENDPOINT } from "../../../constants/endpoint";
 import { parseApiError } from "../../../utils/ErrorHandler";
 import { ToastError, ToastSuccess } from "../../../utils/ToastUtils";
-import { useFetch } from "../../../composable/useFetch";
+import type { PayloadLogin } from "../../../types/payload/auth";
 
-const router = useRouter();
-
-type FormData = {
-  email: string;
-  password: string;
-};
-
-type LoginResponse = {
-  status: number;
-  iserror: boolean;
-  message: string;
-  data: {
-    name: string;
-    email: string;
-    token: string;
-  };
-};
-
-const formData = ref<FormData>({
+const formData = ref<PayloadLogin>({
   email: "",
   password: "",
 });
+const router = useRouter();
 const errors = ref<Record<string, string>>({});
+const loading = ref<boolean>(false);
 const showPassword = ref<boolean>(false);
-
-const { loading, request } = useFetch<LoginResponse>();
 
 function validateForm() {
   const newErrors: Record<string, string> = {};
@@ -54,39 +36,52 @@ function validateForm() {
 async function handleSubmit(e: Event) {
   e.preventDefault();
   if (!validateForm()) return;
+  loading.value = true;
 
   try {
-    const result = await request(`${API_ENDPOINT}/auth/login`, {
+    const res = await fetch(`${API_ENDPOINT}/auth/login`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         email: formData.value.email,
         password: formData.value.password,
       }),
     });
 
-    if (result) {
-      const token = result.data?.token;
-      if (token) {
-        Cookies.set("token", token, {
-          expires: 7,
-          secure: import.meta.env.PROD,
-          sameSite: "strict",
-        });
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (res.status === 400) {
+        throw { message: "Email atau Password salah" };
       }
-
-      ToastSuccess("Login Berhasil!!");
-
-      formData.value = { email: "", password: "" };
-      errors.value = {};
-
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 1000);
+      throw data;
     }
+
+    const token = data?.data?.token;
+    if (token) {
+      Cookies.set("token", token, {
+        expires: 7,
+        secure: import.meta.env.PROD,
+        sameSite: "strict",
+      });
+    }
+
+    ToastSuccess("Login Berhasil!!");
+
+    formData.value = { email: "", password: "" };
+    errors.value = {};
+
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 1000);
   } catch (err: any) {
     const message = err.message || parseApiError(err);
     errors.value = {};
     ToastError(message);
+  } finally {
+    loading.value = false;
   }
 }
 </script>
@@ -159,9 +154,7 @@ async function handleSubmit(e: Event) {
           </button>
         </div>
 
-        <Button type="submit" variant="orange" :disabled="loading" class="w-full">
-          {{ loading ? "Memproses..." : "Masuk" }}
-        </Button>
+        <Button type="submit" variant="orange" :disabled="loading" class="w-full"> Masuk </Button>
       </div>
     </form>
   </section>
