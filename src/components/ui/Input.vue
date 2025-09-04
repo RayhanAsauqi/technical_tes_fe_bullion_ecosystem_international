@@ -36,7 +36,7 @@ const onChange = (event: Event) => {
       :value="modelValue"
       :placeholder="placeholder"
       :class="[
-        'mt-1 block w-full rounded-md border px-3 py-3.5 shadow-sm focus:outline-none sm:text-sm placeholder-black',
+        'mt-1 block w-full rounded-md border px-3 py-3.5 shadow-sm focus:outline-none sm:text-sm ',
         error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500',
       ]"
       @input="onInput"

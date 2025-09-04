@@ -12,7 +12,7 @@ const props = withDefaults(defineProps<Props>(), {
   <div class="min-h-screen md:grid md:grid-cols-2">
     <div
       :class="[
-        'w-full lg:w-[548px] h-32 md:h-auto relative flex items-center justify-center',
+        'hidden md:flex w-full lg:w-[548px] h-32 md:h-auto relative items-center justify-center',
         props.bgColor,
       ]"
     >
