@@ -1,12 +1,13 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
 import Login from "../views/Auth/Login.vue";
 import Register from "../views/Auth/Register.vue";
+import Dashboard from "../views/Dashboard/index.vue";
 
 const routes: RouteRecordRaw[] = [
   {
     path: "/",
-    name: "Home",
-    redirect: "/login",
+    name: "Root",
+    redirect: "/auth/login",
   },
   {
     path: "/auth/login",
@@ -17,6 +18,11 @@ const routes: RouteRecordRaw[] = [
     path: "/auth/register",
     name: "Register",
     component: Register,
+  },
+  {
+    path: "/dashboard",
+    name: "Dashboard",
+    component: Dashboard,
   },
 ];
 

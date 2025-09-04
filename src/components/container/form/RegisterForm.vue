@@ -3,6 +3,8 @@ import { ref } from "vue";
 import Input from "../../ui/Input.vue";
 import Button from "../../ui/Button.vue";
 import InputFile from "../../ui/InputFile.vue";
+import Select from "../../ui/Select.vue";
+import DatePicker from "../../ui/DatePicker.vue";
 
 type FormData = {
   first_name: string;
@@ -14,6 +16,7 @@ type FormData = {
   address: string;
   photo: File | null;
   password: string;
+  confirm_password: string;
 };
 
 const formData = ref<FormData>({
@@ -26,7 +29,16 @@ const formData = ref<FormData>({
   address: "",
   photo: null,
   password: "",
+  confirm_password: "",
 });
+
+const selectGender = ref<string>("");
+const birthDate = ref("");
+
+const genderOptions = [
+  { label: "Laki-laki", value: "male" },
+  { label: "Perempuan", value: "female" },
+];
 
 const error = ref<string>("");
 
@@ -51,13 +63,21 @@ function handleFileChange(file: File | null) {
     error.value = "";
   }
 }
+
+function handleSelectGenderChange(value: string | number) {
+  console.log("Gender selected:", value);
+}
+
+function handleDateChange(value: string) {
+  console.log("date selected:", value);
+}
 </script>
 
 <template>
   <section class="">
     <h1 class="font-bold text-3xl pt-20 pb-10">Daftar</h1>
     <form @submit="handleSubmit" class="grid">
-      <div class="grid grid-cols-2 gap-x-4">
+      <div class="grid lg:grid-cols-2 gap-x-4">
         <Input
           id="first_name"
           label="Nama Depan"
@@ -74,22 +94,21 @@ function handleFileChange(file: File | null) {
           :error="error"
           @change="handleChange"
         />
-        <!-- <EyeIcon /> -->
-        <Input
+        <Select
           id="gender"
           label="Jenis Kelamin"
-          v-model="formData.gender"
-          placeholder="Pilih Jenis Kelamin"
-          :error="error"
-          @change="handleChange"
+          v-model="selectGender"
+          :options="genderOptions"
+          placeholder="Pilih jenis kelamin"
+          @change="handleSelectGenderChange"
         />
-        <Input
-          id="date_of_birth"
+        <DatePicker
+          id="birth-date"
           label="Tanggal Lahir"
-          v-model="formData.date_of_birth"
+          v-model="birthDate"
           placeholder="Pilih tanggal lahir"
-          :error="error"
-          @change="handleChange"
+          :maxDate="new Date().toISOString().split('T')[0]"
+          @change="handleDateChange"
         />
       </div>
       <Input
@@ -117,7 +136,7 @@ function handleFileChange(file: File | null) {
         :error="error"
         @change="handleChange"
       />
-      <div class="grid grid-cols-2 gap-x-4">
+      <div class="grid lg:grid-cols-2 gap-x-4">
         <Input
           id="password"
           label="Password"
@@ -129,7 +148,7 @@ function handleFileChange(file: File | null) {
         <Input
           id="confirm_password"
           label="Konfirmasi Password"
-          v-model="formData.password"
+          v-model="formData.confirm_password"
           placeholder="Masukan konfirmasi password"
           :error="error"
           @change="handleChange"

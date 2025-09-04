@@ -14,15 +14,6 @@ const formData = ref<FormData>({
 });
 
 const error = ref<string>("");
-
-const handleChange = (val: string) => {
-  console.log("onChange value:", val);
-  if (val.length < 3) {
-    error.value = "Minimal 3 karakter";
-  } else {
-    error.value = "";
-  }
-};
 </script>
 
 <template>
@@ -36,16 +27,14 @@ const handleChange = (val: string) => {
           v-model="formData.email"
           placeholder="example@gmail.com"
           :error="error"
-          @change="handleChange"
         />
-        <!-- <EyeIcon /> -->
+        
         <Input
           id="password"
           label="Password"
           v-model="formData.password"
           placeholder="Enter your password"
           :error="error"
-          @change="handleChange"
         />
 
         <Button type="submit" variant="orange" class="w-full"> Masuk </Button>

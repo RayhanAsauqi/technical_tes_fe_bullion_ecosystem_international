@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import RegisterForm from "../../components/container/form/RegisterForm.vue";
-import AuthLayout from "../../components/layouts/auth-layout.vue";
+import AuthLayout from "../../components/layouts/AuthLayout.vue";
 </script>
 
 <template>
