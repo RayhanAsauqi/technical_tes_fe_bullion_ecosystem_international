@@ -8,29 +8,9 @@ import DatePicker from "../../ui/DatePicker.vue";
 import { API_ENDPOINT } from "../../../constants/endpoint";
 import { parseApiError } from "../../../utils/ErrorHandler";
 import { ToastSuccess, ToastError } from "../../../utils/ToastUtils";
-import { useFetch } from "../../../composable/useFetch";
+import type { PayloadRegister } from "../../../types/payload/auth";
 
-type FormDataType = {
-  first_name: string;
-  last_name: string;
-  gender: "male" | "female";
-  date_of_birth: string;
-  email: string;
-  phone: string;
-  address: string;
-  photo: File | null;
-  password: string;
-  confirm_password: string;
-};
-
-type RegisterResponse = {
-  status: number;
-  iserror: boolean;
-  message: string;
-  data?: any;
-};
-
-const formData = ref<FormDataType>({
+const formData = ref<PayloadRegister>({
   first_name: "",
   last_name: "",
   gender: "male",
@@ -42,12 +22,9 @@ const formData = ref<FormDataType>({
   password: "",
   confirm_password: "",
 });
-
 const selectGender = ref<string>("");
 const birthDate = ref<string>("");
-
-const { loading, request } = useFetch<RegisterResponse>();
-
+const loading = ref<boolean>(false);
 const errors = ref<Record<string, string>>({});
 
 const genderOptions = [
@@ -99,6 +76,7 @@ async function handleSubmit(e: Event) {
   e.preventDefault();
   if (!validateForm()) return;
 
+  loading.value = true;
   try {
     const body = new FormData();
     body.append("first_name", formData.value.first_name);
@@ -114,33 +92,22 @@ async function handleSubmit(e: Event) {
       body.append("photo", formData.value.photo);
     }
 
-    const result = await request(`${API_ENDPOINT}/auth/register`, {
+    const res = await fetch(`${API_ENDPOINT}/auth/register`, {
       method: "POST",
       body,
     });
 
-    if (result) {
-      ToastSuccess("Register Berhasil, Silahkan Login");
-
-      formData.value = {
-        first_name: "",
-        last_name: "",
-        gender: "male",
-        date_of_birth: "",
-        email: "",
-        phone: "",
-        address: "",
-        photo: null,
-        password: "",
-        confirm_password: "",
-      };
-      selectGender.value = "";
-      birthDate.value = "";
-      errors.value = {};
+    const data = await res.json();
+    if (!res.ok) {
+      throw data;
     }
+
+    ToastSuccess("Register Berhasil, Silahkan Login");
   } catch (err: any) {
     const message = parseApiError(err);
     ToastError(message);
+  } finally {
+    loading.value = false;
   }
 }
 

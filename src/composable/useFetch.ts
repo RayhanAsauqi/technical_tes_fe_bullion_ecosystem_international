@@ -1,54 +1,41 @@
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import Cookies from "js-cookie";
 
-export function useFetch<T>() {
+export function useFetch<T>(url: string) {
   const data = ref<T | null>(null);
+  const loading = ref<boolean>(true);
   const error = ref<string | null>(null);
-  const loading = ref<boolean>(false);
 
-  async function request(url: string, options: RequestInit = {}): Promise<T | null> {
+  async function fetchData() {
     loading.value = true;
     error.value = null;
 
     try {
       const token = Cookies.get("token");
 
-      const defaultHeaders: Record<string, string> = {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      };
-
-      if (!(options.body instanceof FormData)) {
-        defaultHeaders["Content-Type"] = "application/json";
-      }
-
       const res = await fetch(url, {
-        ...options,
+        method: "GET",
         headers: {
-          ...defaultHeaders,
-          ...options.headers,
+          Authorization: token ? `Bearer ${token}` : "",
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
       });
 
-      const result = await res.json();
-
       if (!res.ok) {
-        throw result.message || "Terjadi kesalahan";
+        throw new Error(`Error ${res.status}: ${res.statusText}`);
       }
 
-      data.value = result as T;
-      return result as T;
-    } catch (err: any) {
-      error.value = err;
-      return null;
+      const json = (await res.json()) as T;
+      data.value = json;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : "Unexpected error occurred";
     } finally {
       loading.value = false;
     }
   }
 
-  return {
-    data,
-    error,
-    loading,
-    request,
-  };
+  onMounted(fetchData);
+
+  return { data, loading, error, refetch: fetchData };
 }
